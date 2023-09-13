@@ -1,0 +1,158 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+<style>
+        #container { 
+            display: flex;
+            width: 70%; 
+            margin: auto;
+            flex-direction: column; 
+            justify-content: center; 
+            align-content: center;
+        }
+</style>
+
+<div id="container">
+
+    <div class="input-group mb-2">
+        <span class="input-group-text w-25 bg-white border-0">Negara</span>
+        <input id="neg" type="text" class="form-control" placeholder="...">
+    </div>
+
+    <div class="input-group mb-2">
+        <span class="input-group-text w-25 bg-white border-0">Pelabuhan</span>
+        <input id="pelabuhan" type="text" class="form-control" placeholder="...">
+    </div>
+
+    <div class="input-group mb-2">
+        <span class="input-group-text w-25 bg-white border-0">Barang</span>
+        <input id="brgid" type="text" class="form-control" placeholder="...">
+    </div>
+
+    <div class="input-group mb-2">
+        <span class="input-group-text w-25 border-0 bg-white"></span>
+        <textarea id="barang" disabled class="form-control"></textarea>
+    </div>
+
+    <div class="input-group mb-2">
+        <span class="input-group-text w-25 bg-white border-0">Harga</span>
+        <input id="harga" type="number" placeholder="0" class="form-control">
+    </div>
+
+    <div class="input-group mb-2">
+        <span class="input-group-text w-25 bg-white border-0">Tarif Bea Masuk</span>
+        <input id="tbm" disabled="true" placeholder="0" type="number" class="form-control">
+        <span class="input-group-text">%</span>
+    </div>
+
+    <div class="input-group mb-2">
+        <span class="input-group-text w-25 border-0 bg-white"></span>
+        <input id="hxtmb" disabled="true" placeholder="0" type="number" class="form-control">
+    </div>
+
+    @section Scripts {
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.0/themes/base/jquery-ui.css"/>
+        <script src="https://code.jquery.com/ui/1.13.0/jquery-ui.min.js"></script>
+        <script>
+            $(function () {
+                $("#neg").autocomplete({
+                    source: function (request, response) {
+                        $.ajax({
+                            url: "https://insw-dev.ilcs.co.id/n/negara?",
+                            type: "GET",
+                            dataType: "json",
+                            data: { ur_negara: request.term },
+                            success: function (data) {
+                                response($.map(data.data, function (item) {
+                                    return { label: item.ur_negara, value: item.kd_negara };
+                                }));
+                            },
+                            
+                        });
+                    },
+                    minLength: 3,
+                    select: function (event, ui) {
+                        $("#neg").val(ui.item.label);
+                        $("#neg").attr("data-id", ui.item.value);
+                        console.log(ui.item ? "Selected: " + ui.item.label : "Nothing selected, input was " + this.value);
+                        return false
+                    }
+                });
+            });
+             $(function () {
+                 
+                $("#pelabuhan").autocomplete({
+                    source: function (request, response) {
+                        $.ajax({
+                            url: "https://insw-dev.ilcs.co.id/n/pelabuhan?"+"kd_negara="+$('#neg').attr("data-id")+"&",
+                            type: "GET",
+                            dataType: "json",
+                            data: { ur_pelabuhan: request.term },
+                            success: function (data) {
+                                response($.map(data.data, function (item) {
+                                     return { label: item.ur_pelabuhan, value: item.kd_pelabuhan };
+                                }));
+                            },
+                                        
+                        });
+                    },
+                    minLength: 3,
+                    select: function (event, ui) {
+                        $("#pelabuhan").val(ui.item.label);
+                        $("#pelabuhan").attr("data-id", ui.item.value);
+                        console.log(ui.item ? "Selected: " + ui.item.label : "Nothing selected, input was " + this.value);
+                        return false
+                        }
+                    });
+             });
+              $(function () {
+                      $('#brgid').on('input', function () {
+                          var value = $(this).val();
+                          if (value) {
+                              $.ajax({
+                                  url: "https://insw-dev.ilcs.co.id/n/barang?",
+                                  type: "GET",
+                                  data: { hs_code: value },
+                                  dataType: "json",
+                                  success: function (data) {
+                                      $("#barang").text(data.data[0].sub_header + data.data[0].uraian_id)
+
+                                  },
+                                  error: function (xhr, status, error) {
+                                      $("#barang").text("")
+                                  }
+                              });
+                          }
+                      });
+                  });      
+              
+              $(function () {
+                      $('#brgid').on('input', function () {
+                          var value = $(this).val();
+                          if (value) {
+                              $.ajax({
+                                  url: "https://insw-dev.ilcs.co.id/n/tarif?",
+                                  type: "GET",
+                                  data: { hs_code: value },
+                                  dataType: "json",
+                                  success: function (data) {
+                                      $("#tbm").val(data.data[0].bm)
+                                  },
+                                  error: function (xhr, status, error) {
+                                      $("#tbm").val(0)
+                                  }
+                              });
+                          }
+                      });
+                  });    
+              
+              $(function () {
+                  $("#harga").on('input', function () {
+                       $("#hxtmb").val(($("#harga").val() * $("#tbm").val()) / 100)                   
+                  })
+              })
+        </script>
+    }
+
+</div>
